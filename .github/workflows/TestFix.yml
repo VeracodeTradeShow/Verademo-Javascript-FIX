@@ -8,7 +8,7 @@
 #   pipeline scan
 #   try fix
 
-name: the-essentials
+name: Test Fix
 
 on:
   workflow_dispatch:
