@@ -63,6 +63,7 @@ jobs:
             with:
               name: Veracode Pipeline-Scan Results
               path: results.json
+              overwrite: true
       
   veracode-fix:
         runs-on: ubuntu-latest
