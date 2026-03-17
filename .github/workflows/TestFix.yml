@@ -48,7 +48,7 @@ jobs:
           - name: get archive
             uses: actions/download-artifact@v4
             with:
-              name: verademo.war
+              name: verademo.zip
           - name: pipeline-scan action step
             id: pipelien-scan
             uses: veracode/Veracode-pipeline-scan-action@esd-true
