@@ -1,1 +1,92 @@
 
+# This file contains the essential steps for getting the app packaged and scanned using Veracode's various
+# scan types.  We suggest starting with the elements in this file and fully understanding them before
+# attempting more advanced use cases, like 'Pipeline scan on a PR', or importing Issues.
+
+# The essential steps shown below are:
+#   checkout and package the app for scanning
+#   pipeline scan
+#   try fix
+
+name: the-essentials
+
+on:
+  workflow_dispatch:
+    
+jobs:
+  checkout-and-package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+    
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.3.0'
+    
+      - name: Zip application files
+        run: |
+          rm -rf verademo.zip
+          zip -r verademo.zip resources/css/ resources/js/ routes/ src-app/ views/ \
+            app.js package.json package-lock.json
+
+      - name: save artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: scan-target
+          path: verademo.zip
+  
+  pipeline_scan:
+        needs: build
+        runs-on: ubuntu-latest
+        name: Veracode Pipeline Scan
+        steps:
+          - name: checkout repo
+            uses: actions/checkout@v3
+  
+          - name: get archive
+            uses: actions/download-artifact@v4
+            with:
+              name: verademo.war
+          - name: pipeline-scan action step
+            id: pipelien-scan
+            uses: veracode/Veracode-pipeline-scan-action@esd-true
+            with:
+              vid: ${{ secrets.VID }}
+              vkey: ${{ secrets.VKEY }}
+              file: "verademo.zip" 
+              request_policy: "VeraDemo Policy"
+              debug: 1
+              fail_build: false
+           - uses: actions/upload-artifact@v4
+            with:
+              name: Veracode Pipeline-Scan Results
+              path: results.json             
+    
+    veracode-fix:
+      runs-on: ubuntu-latest
+      needs: pipeline_scan
+      name: Veracode Fix
+      steps:
+        - name: checkout repo
+          uses: actions/checkout@v3
+  
+        - name: get flaw file
+          uses: actions/download-artifact@v4
+          with:
+            name: Veracode Pipeline-Scan Results
+            
+        - name: Create fixes from static findings
+          id: convert
+          uses: Veracode/veracode-fix@main
+          with:
+            inputFile: filtered_results.json
+            vid: ${{ secrets.VID }}
+            vkey: ${{ secrets.VKEY }}
+            source_base_path_1: "com/:src/main/java/com/"
+            source_base_path_2: "WEB-INF:src/main/webapp/WEB-INF"
+            language: java
+            prComment: true
+            fixType: single
