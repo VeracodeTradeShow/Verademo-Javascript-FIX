@@ -82,7 +82,7 @@ jobs:
             id: convert
             uses: Veracode/veracode-fix@main
             with:
-              inputFile: filtered_results.json
+              inputFile: results.json
               vid: ${{ secrets.VID }}
               vkey: ${{ secrets.VKEY }}
               language: javascript
