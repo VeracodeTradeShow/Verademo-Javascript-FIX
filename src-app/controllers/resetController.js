@@ -5,6 +5,7 @@ const dbconnector = require('../utils/dbconnector.js');
 const User = require('../utils/User.js');
 const readline = require('readline');
 const util = require('util');
+import * as DOMPurify from 'dompurify';
 
 
 const users = [
@@ -67,7 +68,7 @@ async function reset (req,res) {
             if (req.query.redirect) {
                 return res.redirect(req.query.redirect);
             }
-            return res.send(response.data);
+return res.send(DOMPurify.sanitize(response.data));
         } catch (err) {
             console.error(err.message);
             return res.status(500).send('Error occured during HTTP request');
